@@ -34,14 +34,10 @@ Resources:
         dnf install python3 -y
         dnf install python3-pip -y
         pip3 install flask
-        FOLDER="https://raw.githubusercontent.com/safiyetkgz/101-cfn-static-website-ec2/main/static-web/"
-        cd /var/www/html
-        wget ${FOLDER}index.html
-        wget ${FOLDER}cat0.jpg
-        wget ${FOLDER}cat1.jpg
-        wget ${FOLDER}cat2.jpg
-        wget ${FOLDER}cat3.png
-
+        yum install -y git
+        git clone https://github.com/safiyetkgz/Roman-Numerals-Converter-Application-Python-Flask.git
+        cd 001-roman-numerals-converter
+        python3 roman-numerals-converter-app.py
   mySecGrp:
     Type: AWS::EC2::SecurityGroup
     Properties:
