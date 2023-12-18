@@ -1,9 +1,9 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: |
-  The Roman Numerals Converter Application aims to convert the given number to the Roman numerals.
-  The application is to be coded in Python and deployed as a web application with Flask on AWS Elastic 
-  Compute Cloud (EC2) Instance using AWS Cloudformation and CLI Services.
-
+  CloudFormation Template for Roman Numerals Converter Application. 
+  This template creates Python Flask Web Application on Amazon Linux 2023  
+  EC2 Instance with custom security group allowing http connections on port 80, 8080 and SSH connection on port 22. 
+  Roman Numerals Converter Application is downloaded from Github repository, then installed on Flask.
 Parameters:
   imageID:
     Type: "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>"
@@ -13,16 +13,26 @@ Parameters:
     Description: Choose your keypair
     Type: AWS::EC2::KeyPair::KeyName
     Default: firstkey
+  LatestAmiId:
+    Type: "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>"
+    Default: "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2"
+  instanceType:
+    Description: Choose your instance type
+    Type: String
+    AllowedValues:
+      - t2.micro
+      - t3.micro
+      - t2.large
 
 Resources:
-  myWebServer:
+  myWebServerHost:
     Type: AWS::EC2::Instance
     Properties:
-      ImageId: !Ref imageID
-      InstanceType: t2.micro
+      ImageId: !Ref LatestAmiId
+      InstanceType: !Ref instanceType
       KeyName: !Ref keyPair
       SecurityGroupIds:
-        - !Ref mySecGrp # !GetAtt mySecGrp.GroupId ile de çağırabiliriz.
+        - !Ref WebServerSecurityGroup # !GetAtt mySecGrp.GroupId ile de çağırabiliriz.
 
       Tags:
         - Key: Name
@@ -34,24 +44,36 @@ Resources:
         dnf install python3 -y
         dnf install python3-pip -y
         pip3 install flask
-        yum install -y git
-        git clone https://github.com/safiyetkgz/Roman-Numerals-Converter-Application-Python-Flask.git
-        cd 001-roman-numerals-converter
+        dnf install git -y
+        FOLDER="https://raw.githubusercontent.com/safiyetkgz/Roman-Numerals-Converter-Application-Python-Flask-/main/templates"
+        cd /home/ec2-user
+        wget -P templates ${FOLDER}/index.html
+        wget -P templates ${FOLDER}/result.html
+        wget https://raw.githubusercontent.com/safiyetkgz/Roman-Numerals-Converter-Application-Python-Flask-/main/roman-numerals-converter-app.py
         python3 roman-numerals-converter-app.py
-  mySecGrp:
+
+  WebServerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: ssh and http # Required
-      GroupName: safiye-kitten-project-sec-grp
+      GroupName: safiye-roman-number-conventer
       SecurityGroupIngress:
         - IpProtocol: tcp
-          FromPort: 22
+          FromPort: 80
           ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 8080
+          ToPort: 8080
           CidrIp: 0.0.0.0/0
 
 Outputs:
-  webSiteUrl:
-    Description: URL of website
-    Value: !Sub
-      - "http://${PublicDNS}"
-      - PublicDNS: !GetAtt myWebServer.PublicDnsName
+WebsiteURL:
+  Value: !Sub
+    - http://${PIA}
+    - PIA: !GetAtt WebServerHost.PublicDnsName
+  Description: Roman Numerals Converter Application URL
