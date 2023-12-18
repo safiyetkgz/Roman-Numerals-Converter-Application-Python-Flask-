@@ -16,20 +16,13 @@ Parameters:
   LatestAmiId:
     Type: "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>"
     Default: "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2"
-  instanceType:
-    Description: Choose your instance type
-    Type: String
-    AllowedValues:
-      - t2.micro
-      - t3.micro
-      - t2.large
 
 Resources:
-  myWebServerHost:
+  WebServerHost:
     Type: AWS::EC2::Instance
     Properties:
       ImageId: !Ref LatestAmiId
-      InstanceType: !Ref instanceType
+      InstanceType: t2.micro
       KeyName: !Ref keyPair
       SecurityGroupIds:
         - !Ref WebServerSecurityGroup # !GetAtt mySecGrp.GroupId ile de çağırabiliriz.
@@ -72,8 +65,8 @@ Resources:
           CidrIp: 0.0.0.0/0
 
 Outputs:
-WebsiteURL:
-  Value: !Sub
-    - http://${PIA}
-    - PIA: !GetAtt WebServerHost.PublicDnsName
-  Description: Roman Numerals Converter Application URL
+  WebsiteURL:
+    Value: !Sub
+      - http://${PIA}
+      - PIA: !GetAtt WebServerHost.PublicDnsName
+    Description: Roman Numerals Converter Application URL
